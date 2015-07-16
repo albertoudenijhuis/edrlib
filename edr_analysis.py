@@ -240,11 +240,11 @@ def retr_edr_via_variance(zeta,key_str):
     if zeta['domain'] == 'time':
         res['edr.err'] = (1./3.) * \
                             (res['edr'] ** (1. / 3.)) \
-                            * np.sqrt(1. + (zeta['var'] / (zeta['u0'] ** 2.)) + (9. / (2. * (zeta['n'] - 1.))))
+                            * np.sqrt(((zeta['freqmin']/zeta['freqmax'])**(4./3.)) + (zeta['var'] / (zeta['u0'] ** 2.)) + (9. / (2. * (zeta['n'] - 1.))))
     else:
         res['edr.err'] = (1./3.) * \
                             (res['edr'] ** (1. / 3.)) \
-                            * np.sqrt(1. +  (9. / (2. * (zeta['n'] - 1.))))
+                            * np.sqrt(((zeta['freqmin']/zeta['freqmax'])**(4./3.)) +  (9. / (2. * (zeta['n'] - 1.))))
     
     return res
 
@@ -428,8 +428,9 @@ def radial_kolmogorov_constants(zeta, azimuthrad, azimuth0rad, elevationrad):
     zeta['struc3_C']    = -4./5.
     return True
 
-def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, plot_nonperiodic = True, plot_legend = True, units_in = {}):
-    fontsize0 = 20
+def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = False, plot_nonperiodic = True, plot_legend = True, units_in = {}):
+    fontsize0 = 16
+    fontsize1 = 14
     matplotlib.rc('xtick', labelsize=fontsize0) 
     matplotlib.rc('ytick', labelsize=fontsize0) 
 
@@ -438,16 +439,17 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
     #sorting = signal['freqsort']       
 
     st_1 = {'color':'green' , 'alpha':0.7, 'linewidth':2}                       #non-periodic
-    st_1p= {'color':'green' , 'alpha':0.7, 'marker':'o', 'linestyle':'None'}    #non-periodic
-    st_1s= {'color':'green' , 'alpha':0.7, 'linewidth':1, 'linestyle':'--'}     #non-periodic
+    st_1p= {'color':'black' , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}    #non-periodic
+    st_1s= {'color':'green' , 'alpha':0.7, 'linewidth':2, 'linestyle':'--'}     #non-periodic
     st_1f= {'color':'green' , 'alpha':0.1}                                      #non-periodic
-    st_1i= {'color':'red' , 'alpha':0.7, 'linewidth':1, 'linestyle':'-', 'zorder':10}      #non-periodic
+    
+    st_1i= {'color':'green' , 'alpha':0.7, 'linewidth':2, 'linestyle':'-', 'zorder':10}      #non-periodic
 
     st_2 = {'color':'red'   , 'alpha':0.7, 'linewidth':2}                       #periodic
-    st_2p= {'color':'red'   , 'alpha':0.7, 'marker':'o', 'linestyle':'None'}    #periodic
-    st_2s= {'color':'red'   , 'alpha':0.7, 'linewidth':1, 'linestyle':'--'}     #periodic
+    st_2p= {'color':'black'   , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}    #periodic
+    st_2s= {'color':'red'   , 'alpha':0.7, 'linewidth':2, 'linestyle':'--'}     #periodic
     st_2f= {'color':'red'   , 'alpha':0.1}                                      #periodic
-    st_2i= {'color':'green'   , 'alpha':0.7, 'linewidth':1, 'linestyle':'-', 'zorder':10}      #non-periodic
+    st_2i= {'color':'red'   , 'alpha':0.7, 'linewidth':2, 'linestyle':'-', 'zorder':10}      #periodic
 
     #~ units = {}
     #~ units.update(units_in)
@@ -455,15 +457,19 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
         #~ units['eps'] = 
 
     if not seperate:      
-        nrows = 6
-        fig = plt.figure(figsize=(8,8*nrows))
-        plot_lst = ['signal', 'autocovariance', 'dll', 'dlll', 'pow', 'phase']
+        if plot_periodic:
+            plot_lst = ['signal', 'autocovariance', 'dll', 'dlll', 'pow', 'phase']
+        if plot_nonperiodic:
+            plot_lst = ['signal', 'autocovariance', 'dll', 'dlll', 'pow']
+        nrows = len(plot_lst)
+        fig = plt.figure(figsize=(5,5*nrows))
+
     if seperate:
         plot_lst = ['signal', 'autocovariance', 'dll', 'dlll', 'pow', 'dll2', 'dlll2', 'pow2', 'phase']
     
     for plot in plot_lst:
         if seperate:
-            fig = plt.figure(figsize=(8,4))
+            fig = plt.figure(figsize=(5,5))
             ax = fig.add_subplot(1,1,1)
 
         if plot == 'signal':
@@ -496,7 +502,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
             ax.set_ylabel(r'$R$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left')
+                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
 
         if plot == 'dll':
             #dll
@@ -544,7 +550,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
                 ax.set_ylabel(r'$D_{LL}$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, loc='upper left', ncol=2)
+                ax.legend(frameon=False, loc='upper left', ncol=2, fontsize=fontsize1)
             
         if plot == 'dll2':
             #dll
@@ -581,7 +587,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
             ax.set_ylabel(r'$\epsilon$ [m$^2$s$^{-3}$]', fontsize=fontsize0)
                                 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left')
+                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
 
             try:
                 ax.set_yscale('log')
@@ -636,7 +642,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
             ax.set_ylabel(r'$D_{LLL}$ [m$^3$s$^{-3}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left')
+                ax.legend(frameon=False, ncol=2, loc='upper left', fontsize=fontsize1)
             
         if plot == 'dlll2':
             #dlll              
@@ -676,7 +682,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
             ax.set_ylabel(r'$\epsilon$\ [m$^2$s$^{-3}$]', fontsize=fontsize0)
                 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left')
+                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
 
             try:
                 ax.set_yscale('log')
@@ -700,7 +706,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                                         
             if zeta['domain'] == 'time':
                 if plot_nonperiodic:
-                    ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['nonperiodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_1)
+                    #ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['nonperiodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_1)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['nonperiodic_powerspectrum_edr++'], zeta['freqmin'],zeta['power_C']), **st_1s)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['nonperiodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']), **st_1s)
                     ax.fill_between(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['nonperiodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']),
@@ -709,7 +715,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                         tmpx = np.array( [zeta['nonperiodic_powerspectrum_lstfreqmin'][int_i], zeta['nonperiodic_powerspectrum_lstfreqmax'][int_i]] )
                         ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,zeta['u0'] * zeta['nonperiodic_powerspectrum_lstedr'][int_i] , zeta['freqmin'],zeta['power_C']), label='interval', **st_1i)                
                 if plot_periodic:                                
-                    ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['periodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_2)
+                    #ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['periodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_2)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['periodic_powerspectrum_edr++'], zeta['freqmin'],zeta['power_C']), **st_2s)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['periodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']), **st_2s)
                     ax.fill_between(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['u0'] * zeta['periodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']),
@@ -720,7 +726,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
 
             else:
                 if plot_nonperiodic:
-                    ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['nonperiodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_1)
+                    #ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['nonperiodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_1)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['nonperiodic_powerspectrum_edr++'], zeta['freqmin'],zeta['power_C']), **st_1s)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['nonperiodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']), **st_1s)
                     ax.fill_between(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['nonperiodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']),
@@ -730,7 +736,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                         ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,zeta['nonperiodic_powerspectrum_lstedr'][int_i] , zeta['freqmin'],zeta['power_C']), label='interval', **st_1i)
 
                 if plot_periodic:
-                    ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['periodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_2)
+                    #ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['periodic_powerspectrum_edr'], zeta['freqmin'],zeta['power_C']), label='fit', **st_2)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['periodic_powerspectrum_edr++'], zeta['freqmin'],zeta['power_C']), **st_2s)
                     ax.plot(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['periodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']), **st_2s)
                     ax.fill_between(zeta['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (zeta['freq'][sorting] ,zeta['periodic_powerspectrum_edr--'], zeta['freqmin'],zeta['power_C']),
@@ -746,7 +752,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
             ax.set_ylabel('$P_k$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
             
             if plot_legend:
-                ax.legend(frameon=False, loc='lower left', ncol=2)
+                ax.legend(frameon=False, loc='lower left', ncol=2, fontsize=fontsize1)
             try:
                 ax.set_xscale('log')
                 ax.set_yscale('log')
@@ -805,7 +811,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
             ax.set_ylabel(r'$\epsilon$ [m$^2$s$^{-3}$]', fontsize=fontsize0)
 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left')
+                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
             try:
                 ax.set_xscale('log')
                 ax.set_yscale('log')
@@ -833,7 +839,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
             ax.set_xscale('log')
 
             if plot_legend:
-                ax.legend(frameon=False, loc='lower left')
+                ax.legend(frameon=False, loc='lower left', fontsize=fontsize1)
 
         if seperate:
             try:
@@ -848,7 +854,7 @@ def makeplots(zeta, name='edr_analysis', seperate=False, plot_periodic = True, p
                 pass
             
     if not seperate:            
-        fig.subplots_adjust(hspace=.8)
+        #fig.subplots_adjust(hspace=.8)
         plt.tight_layout()
 
 
@@ -931,7 +937,8 @@ def test1():
     do_analysis(zeta)
     do_edr_retrievals(zeta)
     printstats(zeta)
-    makeplots(zeta, 'edr_analysis_testI')
+    makeplots(zeta, 'edr_analysis_testI_periodic', plot_periodic = True, plot_nonperiodic = False)
+    makeplots(zeta, 'edr_analysis_testI_nonperiodic', plot_periodic = False, plot_nonperiodic = True)
 
     return zeta
     
@@ -981,7 +988,8 @@ def test2():
     do_analysis(zeta)
     do_edr_retrievals(zeta)
     printstats(zeta)
-    makeplots(zeta, 'edr_analysis_testII')  
+    makeplots(zeta, 'edr_analysis_testII_periodic', plot_periodic = True, plot_nonperiodic = False)  
+    makeplots(zeta, 'edr_analysis_testII_nonperiodic', plot_periodic = False, plot_nonperiodic = True)  
 
     return zeta
 
@@ -1025,7 +1033,8 @@ def test3():
     do_analysis(zeta)
     do_edr_retrievals(zeta)
     printstats(zeta)
-    makeplots(zeta, 'edr_analysis_testIII')
+    makeplots(zeta, 'edr_analysis_testIII_periodic', plot_periodic = True, plot_nonperiodic = False)
+    makeplots(zeta, 'edr_analysis_testIII_nonperiodic', plot_periodic = False, plot_nonperiodic = True)
 
     return zeta
 
