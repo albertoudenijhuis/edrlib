@@ -180,48 +180,48 @@ def do_edr_retrievals(dct):
     for key_str in ['periodic', 'nonperiodic']:          
         #edr via variance method
         res   = retr_edr_via_variance(dct, key_str)
-        dct[key_str+'_variancemethod_edr']         	= res['edr']
-        dct[key_str+'_variancemethod_edrerr']      	= res['edr.err']
-        dct[key_str+'_variancemethod_edr+']        	= (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_variancemethod_edr-']     	= (res['edr'] ** (1./3.) - res['edr.err'])**3.        
-        dct[key_str+'_variancemethod_edr++']    	= (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_variancemethod_edr--']    	= (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
+        dct[key_str+'_variancemethod_edr']          = res['edr']
+        dct[key_str+'_variancemethod_edrerr']       = res['edr.err']
+        dct[key_str+'_variancemethod_edr+']         = (res['edr'] ** (1./3.) + res['edr.err'])**3.
+        dct[key_str+'_variancemethod_edr-']         = (res['edr'] ** (1./3.) - res['edr.err'])**3.        
+        dct[key_str+'_variancemethod_edr++']        = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
+        dct[key_str+'_variancemethod_edr--']        = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
 
         #edr via power spectrum method
         res = retr_edr_via_power_spectrum(dct,key_str)
-        dct[key_str+'_powerspectrum_edr']      		= res['edr']
-        dct[key_str+'_powerspectrum_edrerr']   		= res['edr.err']
-        dct[key_str+'_powerspectrum_edr+']     		= (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_powerspectrum_edr-']     		= (res['edr'] ** (1./3.) - res['edr.err'])**3.        
-        dct[key_str+'_powerspectrum_edr++']    		= (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_powerspectrum_edr--']    		= (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
-        dct[key_str+'_powerspectrum_lstedr']   		= res['lst_edr']
-        dct[key_str+'_powerspectrum_lstfreq']  		= res['lst_freq']
-        dct[key_str+'_powerspectrum_lstfreqmin']  	= res['lst_freqmin']
-        dct[key_str+'_powerspectrum_lstfreqmax']  	= res['lst_freqmax']
+        dct[key_str+'_powerspectrum_edr']           = res['edr']
+        dct[key_str+'_powerspectrum_edrerr']        = res['edr.err']
+        dct[key_str+'_powerspectrum_edr+']          = (res['edr'] ** (1./3.) + res['edr.err'])**3.
+        dct[key_str+'_powerspectrum_edr-']          = (res['edr'] ** (1./3.) - res['edr.err'])**3.        
+        dct[key_str+'_powerspectrum_edr++']         = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
+        dct[key_str+'_powerspectrum_edr--']         = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
+        dct[key_str+'_powerspectrum_lstedr']        = res['lst_edr']
+        dct[key_str+'_powerspectrum_lstfreq']       = res['lst_freq']
+        dct[key_str+'_powerspectrum_lstfreqmin']    = res['lst_freqmin']
+        dct[key_str+'_powerspectrum_lstfreqmax']    = res['lst_freqmax']
 
         #edr via second order structure function
         res = retr_edr_via_2nd_order(dct,key_str)
-        dct[key_str+'_2ndorder_edr']           		= res['edr']
-        dct[key_str+'_2ndorder_edrerr']        		= res['edr.err']
-        dct[key_str+'_2ndorder_edr+']       		= (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_2ndorder_edr-']       		= (res['edr'] ** (1./3.) - res['edr.err'])**3.
-        dct[key_str+'_2ndorder_edr++']      		= (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_2ndorder_edr--']      		= (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.
-        dct[key_str+'_2ndorder_lstedr']        		= res['lst_edr']
+        dct[key_str+'_2ndorder_edr']                = res['edr']
+        dct[key_str+'_2ndorder_edrerr']             = res['edr.err']
+        dct[key_str+'_2ndorder_edr+']               = (res['edr'] ** (1./3.) + res['edr.err'])**3.
+        dct[key_str+'_2ndorder_edr-']               = (res['edr'] ** (1./3.) - res['edr.err'])**3.
+        dct[key_str+'_2ndorder_edr++']              = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
+        dct[key_str+'_2ndorder_edr--']              = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.
+        dct[key_str+'_2ndorder_lstedr']             = res['lst_edr']
 
         #edr via third order structure function        
         res = retr_edr_via_3rd_order(dct,key_str)
-        dct[key_str+'_3rdorder_edr']           		= res['edr']
-        dct[key_str+'_3rdorder_edrerr']        		= res['edr.err']
-        dct[key_str+'_3rdorder_edr+']          		= (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) + res['edr.err'])**3.
-        dct[key_str+'_3rdorder_edr-']          		= (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) - res['edr.err'])**3.
-        dct[key_str+'_3rdorder_edr++']         		= (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) + 2. * res['edr.err'])**3.
-        dct[key_str+'_3rdorder_edr--']         		= (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) - 2. * res['edr.err'])**3.
-        dct[key_str+'_3rdorder_lstedr']        		= res['lst_edr']
+        dct[key_str+'_3rdorder_edr']                = res['edr']
+        dct[key_str+'_3rdorder_edrerr']             = res['edr.err']
+        dct[key_str+'_3rdorder_edr+']               = (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) + res['edr.err'])**3.
+        dct[key_str+'_3rdorder_edr-']               = (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) - res['edr.err'])**3.
+        dct[key_str+'_3rdorder_edr++']              = (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) + 2. * res['edr.err'])**3.
+        dct[key_str+'_3rdorder_edr--']              = (np.sign(res['edr']) * (np.abs(res['edr']) ** (1./3.)) - 2. * res['edr.err'])**3.
+        dct[key_str+'_3rdorder_lstedr']             = res['lst_edr']
 
-		#Calculation according to Siebert et al. (2006)
-		#Siebert, H., Lehmann, K., & Wendisch, M. (2006). Observations of Small-Scale Turbulence and Energy Dissipation Rates in the Cloudy Boundary Layer. Journal of the Atmospheric Sciences, 63(5), 1451-1466. http://doi.org/10.1175/JAS3687.1
+        #Calculation according to Siebert et al. (2006)
+        #Siebert, H., Lehmann, K., & Wendisch, M. (2006). Observations of Small-Scale Turbulence and Energy Dissipation Rates in the Cloudy Boundary Layer. Journal of the Atmospheric Sciences, 63(5), 1451-1466. http://doi.org/10.1175/JAS3687.1
         nu = 1.5e-5 #kinematic viscosity
         dct[key_str+'_powerspectrum_taylorreynolds'] = (dct['std'] ** 2. ) * np.sqrt(15. / (nu * dct[key_str+'_powerspectrum_edr']))      
     return True
@@ -438,26 +438,26 @@ def retr_edr_via_3rd_order(dct,key_str):
 
 
 def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_nonperiodic = True, plot_legend = True, plot_errors = False, units_in = {}):
-    fontsize0 = 20
-    fontsize1 = 16
+    fontsize0 = 18
+    fontsize1 = 14
     matplotlib.rc('xtick', labelsize=fontsize0) 
     matplotlib.rc('ytick', labelsize=fontsize0) 
 
     #sorting
     sorting = dct['freqsort+']     
 
-    st_1 = {'color':'red' , 'alpha':0.7, 'linewidth':3}                       					#non-periodic
+    st_1 = {'color':'red' , 'alpha':0.7, 'linewidth':3}                                         #non-periodic
     st_1p= {'color':'black' , 'alpha':0.7, 'marker':'x', 'linestyle':'None', 'markersize':3}    #non-periodic
-    st_1s= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}     					#non-periodic
-    st_1f= {'color':'red' , 'alpha':0.1}                                      					#non-periodic
+    st_1s= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                       #non-periodic
+    st_1f= {'color':'red' , 'alpha':0.1}                                                        #non-periodic
     
-    st_1i= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}      		#non-periodic
+    st_1i= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}           #non-periodic
 
-    st_2 = {'color':'green'   , 'alpha':0.7, 'linewidth':3}                       				#periodic
-    st_2p= {'color':'black'   , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}    				#periodic
-    st_2s= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}     				#periodic
-    st_2f= {'color':'green'   , 'alpha':0.1}                                      				#periodic
-    st_2i= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}      	#periodic
+    st_2 = {'color':'green'   , 'alpha':0.7, 'linewidth':3}                                     #periodic
+    st_2p= {'color':'black'   , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}                  #periodic
+    st_2s= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                   #periodic
+    st_2f= {'color':'green'   , 'alpha':0.1}                                                    #periodic
+    st_2i= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}       #periodic
 
     if not seperate:      
         if plot_periodic:
@@ -472,7 +472,7 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
     
     for plot in plot_lst:
         if seperate:
-            fig = plt.figure(figsize=(5,5))
+            fig = plt.figure(figsize=(4,4))
             ax = fig.add_subplot(1,1,1)
 
         if plot == 'velocity_series':
@@ -918,8 +918,8 @@ def test1():
     print 'TEST I'
     print 'start from power spectrum'
     print 'eddy dissipation rate is set to 1.0'
-	print
-	
+    print
+    
     dct = {}
     dct['n'] = 201
     dct['mu'] = 0.
@@ -962,8 +962,8 @@ def test2():
     print 'start from second order structure function'
     print 'eddy dissipation rate is set to 1.0'
     print 'please note: bias can occur as d2 is periodic in simulation, and d2 is calculated non-periodic in retrieval'
-	print
-	
+    print
+    
     dct = {}
     dct['n'] = 201
     dct['mu'] = 0.
@@ -1013,8 +1013,8 @@ def test3():
     print 'start from power spectrum'
     print 'test the time domain'
     print 'eddy dissipation rate is set to 1.0'
-	print
-	
+    print
+    
     dct = {}
     dct['n'] = 201
     dct['mu'] = 0.
