@@ -13,11 +13,11 @@ Delft University of Technology
 
 Date
 ====
-March 7th, 2016
+November 17th, 2018
 
 Version
 =======
-1.0
+1.1
 
 Project
 =======
@@ -29,7 +29,8 @@ Whenever this Python module is used for publication,
 the code writer should be informed, acknowledged and referenced.
 If you have any suggestions for improvements or amendments, please inform the author of this class.
 
-Oude Nijhuis, A. C. P., Unal, C. M. H., Krasnov, O. A., Russchenberg, H. W. J., & Yarovoy, A. (2016). Drop size distribution independent radar based EDR retrieval techniques applied during rain: I. Assessment by two case studies (in preperation). Journal of Atmospheric and Oceanic Technology.
+Reference:
+Oude Nijhuis, A. C. P., Unal, C. M. H., Krasnov, O. A., Russchenberg, H. W. J., & Yarovoy, A. (2018). Velocity-based EDR retrieval techniques applied to Doppler radar measurements from rain: Two case studies (under review). Journal of Atmospheric and Oceanic Technology.
 
 Typical usage
 =============
@@ -56,4 +57,4 @@ Three test will be run. See the function test() at the bottom of this file for t
 
 Revision History
 ================
--
+- 17th November 2018: tested with Python3.6 and resolved some minor issues.

@@ -62,7 +62,7 @@ Revision History
 ================
 -
 '''
-print __readme
+print(__readme)
 
 
 import numpy as np
@@ -89,7 +89,7 @@ def do_analysis(velocity_series):
     velocity_series['i']                        = np.arange(velocity_series['n'])
 
     if (np.sum(np.isnan(velocity_series['y']) | np.isinf(velocity_series['y'])) > 0):
-        print "\n\nWARNING: your velocity_series contains nans and/or infs!\n\n"
+        print("\n\nWARNING: your velocity_series contains nans and/or infs!\n\n")
 
     if velocity_series['domain'] == 'space':
         velocity_series['x']                    = velocity_series['i'] * velocity_series['dx']
@@ -146,11 +146,11 @@ def kolmogorov_constants(dct, choice):
     elif choice=='transverse':
         dct['kolmogorov_constant_power']     = (4./3.) * (18./55.) * C                   #0.65
         dct['kolmogorov_constant_struc2']    = (4./3.) * C2_div_C1 *  (18./55.) * C
-        dct['kolmogorov_constant_struc3']    = -4./5.            
+        dct['kolmogorov_constant_struc3']    = np.nan
     elif choice=='full':
         dct['kolmogorov_constant_power']     = C
         dct['kolmogorov_constant_struc2']    = C2_div_C1 * dct['kolmogorov_constant_power']
-        dct['kolmogorov_constant_struc3']    = -4./5.                                   
+        dct['kolmogorov_constant_struc3']    = np.nan                                   
     return True
 
 #add Kolmogorov constants for a (radar / lidar) line of sight to a dictionary
@@ -177,24 +177,30 @@ def kolmogorov_constants_los(dct, azimuthrad, azimuth0rad, elevationrad):
 def do_edr_retrievals(dct):
     do_analysis(dct)       #do analysis first
     
+    def minimalzero(x):
+        if x < 0:
+            return 1.e-20
+        else:
+            return x
+    
     for key_str in ['periodic', 'nonperiodic']:          
         #edr via variance method
         res   = retr_edr_via_variance(dct, key_str)
         dct[key_str+'_variancemethod_edr']          = res['edr']
         dct[key_str+'_variancemethod_edrerr']       = res['edr.err']
         dct[key_str+'_variancemethod_edr+']         = (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_variancemethod_edr-']         = (res['edr'] ** (1./3.) - res['edr.err'])**3.        
+        dct[key_str+'_variancemethod_edr-']         = minimalzero((res['edr'] ** (1./3.) - res['edr.err'])**3.)
         dct[key_str+'_variancemethod_edr++']        = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_variancemethod_edr--']        = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
+        dct[key_str+'_variancemethod_edr--']        = minimalzero((res['edr'] ** (1./3.) - 2. * res['edr.err'])**3. )
 
         #edr via power spectrum method
         res = retr_edr_via_power_spectrum(dct,key_str)
         dct[key_str+'_powerspectrum_edr']           = res['edr']
         dct[key_str+'_powerspectrum_edrerr']        = res['edr.err']
         dct[key_str+'_powerspectrum_edr+']          = (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_powerspectrum_edr-']          = (res['edr'] ** (1./3.) - res['edr.err'])**3.        
+        dct[key_str+'_powerspectrum_edr-']          = minimalzero( (res['edr'] ** (1./3.) - res['edr.err'])**3.        )
         dct[key_str+'_powerspectrum_edr++']         = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_powerspectrum_edr--']         = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.        
+        dct[key_str+'_powerspectrum_edr--']         = minimalzero((res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.       )
         dct[key_str+'_powerspectrum_lstedr']        = res['lst_edr']
         dct[key_str+'_powerspectrum_lstfreq']       = res['lst_freq']
         dct[key_str+'_powerspectrum_lstfreqmin']    = res['lst_freqmin']
@@ -205,9 +211,9 @@ def do_edr_retrievals(dct):
         dct[key_str+'_2ndorder_edr']                = res['edr']
         dct[key_str+'_2ndorder_edrerr']             = res['edr.err']
         dct[key_str+'_2ndorder_edr+']               = (res['edr'] ** (1./3.) + res['edr.err'])**3.
-        dct[key_str+'_2ndorder_edr-']               = (res['edr'] ** (1./3.) - res['edr.err'])**3.
+        dct[key_str+'_2ndorder_edr-']               = minimalzero((res['edr'] ** (1./3.) - res['edr.err'])**3.)
         dct[key_str+'_2ndorder_edr++']              = (res['edr'] ** (1./3.) + 2. * res['edr.err'])**3.
-        dct[key_str+'_2ndorder_edr--']              = (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.
+        dct[key_str+'_2ndorder_edr--']              = minimalzero( (res['edr'] ** (1./3.) - 2. * res['edr.err'])**3.)
         dct[key_str+'_2ndorder_lstedr']             = res['lst_edr']
 
         #edr via third order structure function        
@@ -241,7 +247,7 @@ def taulist(n):
     else:
         lst1 = 1+np.arange((n-1)/2)
         lst2 = np.hstack((0,lst1,-lst1[::-1]))
-    return lst2
+    return np.array(lst2, dtype=int)
 
 #calculate autocovariance of x
 def autocovariance(x, periodic=False):
@@ -296,13 +302,13 @@ def struct_function(x, order=2, periodic=False):
         #assume that sequence x is non-periodic
         for i in taulist(n):   #0, 1, 2, 3, ... -3, -2, -1
             if i > 0:
-                a = x[:-i]
-                b = x[i:]
+                a = x[:-int(i)]
+                b = x[int(i):]
             if i <= 0:
-                a = x[-i:]    
-                b = x[:n+i]     
+                a = x[-int(i):]    
+                b = x[:int(n+i)]     
             lst1 = (np.sign(a-b)**order) *(np.abs(a-b)**(order))
-            x_struc[i] = np.average(lst1)
+            x_struc[int(i)] = np.average(lst1)
     return x_struc
 
 #make fft coefficients real
@@ -310,10 +316,10 @@ def make_fft_coef_real(fft_coef_in):
     fft_coef = deepcopy(fft_coef_in)
     n = len(fft_coef)
     if f_even(n):
-        fft_coef[-1:-n/2:-1] = np.conj(fft_coef[1:n/2]) #make signal real for even number
-        fft_coef[n/2] = np.abs(fft_coef[n/2])           #for even number            
+        fft_coef[-1:int(-n/2):-1] = np.conj(fft_coef[1:int(n/2)]) #make signal real for even number
+        fft_coef[int(n/2)] = np.abs(fft_coef[int(n/2)])           #for even number            
     else:
-        fft_coef[-1:-n/2:-1] = np.conj(fft_coef[1:n/2+1])   #make signal real for uneven number         
+        fft_coef[-1:-1-int(n/2):-1] = np.conj(fft_coef[1:int(n/2+1)])   #make signal real for uneven number         
     return fft_coef 
 
 
@@ -437,8 +443,34 @@ def retr_edr_via_3rd_order(dct,key_str):
 
 
 
-def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_nonperiodic = True, plot_legend = True, plot_errors = False, units_in = {}):
-    fontsize0 = 18
+from math import gamma    
+from scipy.integrate import dblquad
+def white1999_I(a, b, L):    
+    def myf(phi, theta):
+        return (
+            12. * gamma(2./3.) * 
+            (np.sin(theta) ** 3.) 
+            * ((
+            ((b ** 2.) * (np.cos(theta)**2.)) +
+            ((a ** 2.) * (np.sin(theta)**2.)) +
+            (((L**2.)/12.) * (np.sin(theta)**2.) * (np.cos(phi)**2.))
+            )**(1./3.))
+        )
+
+    return dblquad(myf, 0, np.pi/2., lambda theta: 0., lambda theta: np.pi/2.)[0]
+    
+
+
+
+def makeplots(dct, name='edrlib',
+    seperate=False,
+    plot_periodic = False,
+    plot_nonperiodic = True,
+    plot_legend = True,
+    plot_errors = False,
+    units_in = {}):
+        
+    fontsize0 = 16
     fontsize1 = 14
     matplotlib.rc('xtick', labelsize=fontsize0) 
     matplotlib.rc('ytick', labelsize=fontsize0) 
@@ -446,18 +478,21 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
     #sorting
     sorting = dct['freqsort+']     
 
-    st_1 = {'color':'red' , 'alpha':0.7, 'linewidth':3}                                         #non-periodic
-    st_1p= {'color':'black' , 'alpha':0.7, 'marker':'x', 'linestyle':'None', 'markersize':3}    #non-periodic
-    st_1s= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                       #non-periodic
-    st_1f= {'color':'red' , 'alpha':0.1}                                                        #non-periodic
-    
-    st_1i= {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}           #non-periodic
+    #non-periodic styles
+    st_1        = {'color':'red' , 'alpha':0.7, 'linewidth':3}                                          #non-periodic
+    st_1p       = {'color':'black' , 'alpha':0.7, 'marker':'x', 'linestyle':'None', 'markersize':3}     #non-periodic
+    st_1p_alt   = {'color':'black' , 'alpha':0.7, 'linewidth':3}                                        #non-periodic
+    st_1s       = {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                        #non-periodic
+    st_1f       = {'color':'#ffe6e6' , 'alpha':0.7}                                                     #non-periodic
+    st_1i       = {'color':'red' , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}            #non-periodic
 
-    st_2 = {'color':'green'   , 'alpha':0.7, 'linewidth':3}                                     #periodic
-    st_2p= {'color':'black'   , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}                  #periodic
-    st_2s= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                   #periodic
-    st_2f= {'color':'green'   , 'alpha':0.1}                                                    #periodic
-    st_2i= {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}       #periodic
+    #periodic styles
+    st_2        = {'color':'green'   , 'alpha':0.7, 'linewidth':3}                                      #periodic
+    st_2p       = {'color':'black'   , 'alpha':0.7, 'marker':'x', 'linestyle':'None'}                   #periodic
+    st_2p_alt   = {'color':'black'   , 'alpha':0.7, 'linewidth':3}                                      #periodic
+    st_2s       = {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'--'}                    #periodic
+    st_2f       = {'color':'#e6ffe6' , 'alpha':0.7}                                                     #periodic
+    st_2i       = {'color':'green'   , 'alpha':0.7, 'linewidth':3, 'linestyle':'-', 'zorder':10}        #periodic
 
     if not seperate:      
         if plot_periodic:
@@ -472,7 +507,7 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
     
     for plot in plot_lst:
         if seperate:
-            fig = plt.figure(figsize=(4,4))
+            fig = plt.figure(figsize=(6,4))
             ax = fig.add_subplot(1,1,1)
 
         if plot == 'velocity_series':
@@ -486,7 +521,7 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
             else:
                 ax.plot(dct['x'], dct['y'])
                 ax.set_xlabel('$x$ [m]', fontsize=fontsize0)
-            ax.set_ylabel('$v$ [m/s]', fontsize=fontsize0)
+            ax.set_ylabel('$v$ [m s$^{-1}$]', fontsize=fontsize0)
            
         if plot == 'autocovariance':
             #autocovariance
@@ -503,9 +538,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_xlabel(r'$t$ [s]', fontsize=fontsize0)
             else:
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
-            ax.set_ylabel(r'$R$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
+            ax.set_ylabel(r'$R$ [m$^2$ s$^{-2}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
+                ax.legend(ncol=2, loc='lower left', fontsize=fontsize1)
 
         if plot == 'd2':
             if not seperate:
@@ -513,9 +548,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_title('$D_{2}$')
 
             if plot_nonperiodic:
-                ax.plot(dct['tau'][sorting], dct['nonperiodic_d2'][sorting], label='non-periodic', **st_1p)
+                ax.plot(dct['tau'][sorting], dct['nonperiodic_d2'][sorting], label='$D_2$', **st_1p_alt)
             if plot_periodic:
-                ax.plot(dct['tau'][sorting], dct['periodic_d2'][sorting], label='periodic', **st_2p)
+                ax.plot(dct['tau'][sorting], dct['periodic_d2'][sorting], label='$D_2$ (periodic)', **st_2p_alt)
             
             if dct['domain'] == 'time':
                 if plot_nonperiodic:
@@ -551,12 +586,12 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
 
             if dct['domain'] == 'time':
                 ax.set_xlabel(r'$t$ [s]', fontsize=fontsize0)
-                ax.set_ylabel(r'$D_{2}$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
+                ax.set_ylabel(r'$D_{2}$ [m$^2$ s$^{-2}$]', fontsize=fontsize0)
             else:
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
-                ax.set_ylabel(r'$D_{2}$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
+                ax.set_ylabel(r'$D_{2}$ [m$^2$ s$^{-2}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, loc='upper left', ncol=2, fontsize=fontsize1)
+                ax.legend(loc='upper left', ncol=2, fontsize=fontsize1)
             
         if plot == 'd22':
             if not seperate:
@@ -564,9 +599,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_title('$D_{2}$')
 
             if plot_nonperiodic:
-                ax.plot(dct['tau'][dct['freqsort+']], dct['nonperiodic_2ndorder_lstedr'], label='non-periodic', **st_1p)            
+                ax.plot(dct['tau'][dct['freqsort+']], dct['nonperiodic_2ndorder_lstedr'], label='non-periodic', **st_1p_alt)            
             if plot_periodic:
-                ax.plot(dct['tau'][dct['freqsort+']], dct['periodic_2ndorder_lstedr'],label='periodic', **st_2p)
+                ax.plot(dct['tau'][dct['freqsort+']], dct['periodic_2ndorder_lstedr'],label='periodic', **st_2p_alt)
 
             if plot_nonperiodic:
                 mylst = np.zeros(len(dct['nonperiodic_3rdorder_lstedr'])) 
@@ -593,7 +628,7 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
             ax.set_ylabel(r'$\epsilon$ [m$^2$s$^{-3}$]', fontsize=fontsize0)
                                 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
+                ax.legend(ncol=2, fontsize=fontsize1)
 
             try:
                 ax.set_yscale('log')
@@ -608,9 +643,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_title('$D_{3}$')
 
             if plot_nonperiodic:
-                ax.plot(dct['tau'][sorting], dct['nonperiodic_d3'][sorting], label='non-periodic', **st_1p)
+                ax.plot(dct['tau'][sorting], dct['nonperiodic_d3'][sorting], zorder=10, label='$D_3$', **st_1p_alt)
             if plot_periodic:
-                ax.plot(dct['tau'][sorting], dct['periodic_d3'][sorting], label='periodic', **st_2p)
+                ax.plot(dct['tau'][sorting], dct['periodic_d3'][sorting], zorder=10, label='$D_3$ (periodic)', **st_2p_alt)
             
             if dct['domain'] == 'time':
                 if plot_nonperiodic:
@@ -650,9 +685,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_xlabel(r'$t$ [s]', fontsize=fontsize0)
             else:
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
-            ax.set_ylabel(r'$D_{3}$ [m$^3$s$^{-3}$]', fontsize=fontsize0)
+            ax.set_ylabel(r'$D_{3}$ [m$^3$ s$^{-3}$]', fontsize=fontsize0)
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='upper left', fontsize=fontsize1)
+                ax.legend(ncol=2, loc='lower left', fontsize=fontsize1)
             
         if plot == 'd32':
             if not seperate:
@@ -661,10 +696,10 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
 
             if plot_nonperiodic:
                 ax.plot(dct['tau'][dct['freqsort+']], np.abs(dct['nonperiodic_3rdorder_lstedr'])
-                                        , label='non-periodic', **st_1p)
+                                        , label='non-periodic', **st_1p_alt)
             if plot_periodic:
                 ax.plot(dct['tau'][dct['freqsort+']], np.abs(dct['periodic_3rdorder_lstedr'])
-                                            , label='periodic', **st_2p)
+                                            , label='periodic', **st_2p_alt)
 
             if plot_nonperiodic:
                 mylst = np.zeros(len(dct['nonperiodic_3rdorder_lstedr'])) 
@@ -690,10 +725,10 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
             else:
                 ax.set_xlabel(r'$s$ [m]', fontsize=fontsize0)
 
-            ax.set_ylabel(r'$\epsilon$\ [m$^2$s$^{-3}$]', fontsize=fontsize0)
+            ax.set_ylabel(r'$\epsilon$\ [m$^2$ s$^{-3}$]', fontsize=fontsize0)
                 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
+                ax.legend(ncol=2, loc='lower left', fontsize=fontsize1)
 
             try:
                 ax.set_yscale('log')
@@ -705,28 +740,44 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
             if not seperate:
                 ax = fig.add_subplot(nrows,1,5)
                 ax.set_title('pow')
+
+            xmin = 10.**min(np.floor(np.log10(dct['freq'][sorting])))
+            xmax = 10.**max(np.ceil (np.log10(dct['freq'][sorting])))
+
                 
             if plot_nonperiodic:
                 dat = deepcopy(dct['nonperiodic_pow'][sorting])
                 dat = np.where(dat < (1.e-10 * np.max(dat)), np.nan , dat)
-                ax.plot(dct['freq'][sorting], dat, label='non-periodic', **st_1p) 
+                ax.plot(dct['freq'][sorting], dat, label='$P_k$', **st_1p) 
             if plot_periodic:
                 dat = deepcopy(dct['periodic_pow'][sorting])
                 dat = np.where(dat < (1.e-10 * np.max(dat)), np.nan , dat)
-                ax.plot(dct['freq'][sorting], dat, label='periodic', **st_2p)
+                ax.plot(dct['freq'][sorting], dat, label='$P_k$ (periodic)', **st_2p)
+                                   
+            ymin = 10.**min(np.floor(np.log10(dat)))
+            ymax = 10.**max(np.ceil (np.log10(dat)))
+                                               
                                         
             if dct['domain'] == 'time':
                 if plot_nonperiodic:
                     #ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr'], dct['freqmin'],dct['kolmogorov_constant_power']), label='fit', **st_1)
+                    myfirst = True
                     for int_i in range(len(dct['nonperiodic_powerspectrum_lstedr'])):
+                        extraargs = deepcopy(st_1i)
+                        if myfirst:
+                            extraargs.update({'label':'fit for freq. interval', })                       
                         tmpx = np.array( [dct['nonperiodic_powerspectrum_lstfreqmin'][int_i], dct['nonperiodic_powerspectrum_lstfreqmax'][int_i]] )
-                        ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,dct['u0'] * dct['nonperiodic_powerspectrum_lstedr'][int_i] , dct['freqmin'],dct['kolmogorov_constant_power']), label='interval', **st_1i)                
+                        ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,dct['u0'] * dct['nonperiodic_powerspectrum_lstedr'][int_i] , dct['freqmin'],dct['kolmogorov_constant_power']), **extraargs)                
+                        myfirst = False
 
                     if plot_errors:                    
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
-                        ax.fill_between(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
-                                                                  0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1f)
+                        ax.plot([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
+                        ax.plot([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
+                        print("test")
+                        print(dct['nonperiodic_powerspectrum_edr--'])
+                        print(0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']))
+                        ax.fill_between([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
+                                                                  0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1f)
                 if plot_periodic:                                
                     #ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['periodic_powerspectrum_edr'], dct['freqmin'],dct['kolmogorov_constant_power']), label='fit', **st_2)
                     for int_i in range(len(dct['periodic_powerspectrum_lstedr'])):
@@ -734,10 +785,10 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                         ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,dct['u0'] * dct['periodic_powerspectrum_lstedr'][int_i] , dct['freqmin'],dct['kolmogorov_constant_power']), label='interval', **st_2i)
 
                     if plot_errors:
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
-                        ax.fill_between(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
-                                                              0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['u0'] * dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2f)
+                        ax.plot([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
+                        ax.plot([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
+                        ax.fill_between([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
+                                                              0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['u0'] * dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2f)
 
             else:
                 if plot_nonperiodic:
@@ -747,10 +798,10 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                         ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx ,dct['nonperiodic_powerspectrum_lstedr'][int_i] , dct['freqmin'],dct['kolmogorov_constant_power']), label='interval', **st_1i)
 
                     if plot_errors:
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
-                        ax.fill_between(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
-                                                                  0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1f)
+                        ax.plot([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
+                        ax.plot([xmin, xmax]  , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1s)
+                        ax.fill_between([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['nonperiodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
+                                                                  0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['nonperiodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_1f)
 
                 if plot_periodic:
                     #ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['periodic_powerspectrum_edr'], dct['freqmin'],dct['kolmogorov_constant_power']), label='fit', **st_2)
@@ -759,28 +810,27 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                         ax.plot(tmpx   , 0.5 * model_edr_via_power_spectrum (tmpx , dct['periodic_powerspectrum_lstedr'][int_i] , dct['freqmin'],dct['kolmogorov_constant_power']), label='interval', **st_2i)
 
                     if plot_errors:
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
-                        ax.plot(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
-                        ax.fill_between(dct['freq'][sorting]   , 0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
-                                                                  0.5 * model_edr_via_power_spectrum (dct['freq'][sorting] ,dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2f)
+                        ax.plot(d[xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
+                        ax.plot([xmin, xmax]  , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2s)
+                        ax.fill_between([xmin, xmax]   , 0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['periodic_powerspectrum_edr--'], dct['freqmin'],dct['kolmogorov_constant_power']),
+                                                                  0.5 * model_edr_via_power_spectrum ([xmin, xmax] ,dct['periodic_powerspectrum_edr++'], dct['freqmin'],dct['kolmogorov_constant_power']), **st_2f)
 
             if dct['domain'] == 'time':
                 ax.set_xlabel('$\chi$ [s$^{-1}$]', fontsize=fontsize0)
             else:
                 ax.set_xlabel('$\kappa$ [m$^{-1}$]', fontsize=fontsize0)
-            ax.set_ylabel('$P_k$ [m$^2$s$^{-2}$]', fontsize=fontsize0)
+            ax.set_ylabel('$P_k$ [m$^2$ s$^{-2}$]', fontsize=fontsize0)
             
             if plot_legend:
-                ax.legend(frameon=False, loc='lower left', ncol=2, fontsize=fontsize1)
+                ax.legend(loc='upper right', fontsize=fontsize1)
             try:
                 ax.set_xscale('log')
                 ax.set_yscale('log')
             except:
                 pass
         
-            xmin = 10.**min(np.floor(np.log10(dct['freq'][sorting])))
-            xmax = 10.**max(np.ceil (np.log10(dct['freq'][sorting])))
-            ax.set_xlim(xmin,xmax)
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
 
         if plot == 'pow2':
             #pow              
@@ -827,10 +877,10 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 ax.set_xlabel('$\kappa$ [m$^{-1}$]', fontsize=fontsize0)
 
 
-            ax.set_ylabel(r'$\epsilon$ [m$^2$s$^{-3}$]', fontsize=fontsize0)
+            ax.set_ylabel(r'$\epsilon$ [m$^2$ s$^{-3}$]', fontsize=fontsize0)
 
             if plot_legend:
-                ax.legend(frameon=False, ncol=2, loc='lower left', fontsize=fontsize1)
+                ax.legend(ncol=2, loc='lower left', fontsize=fontsize1)
             try:
                 ax.set_xscale('log')
                 ax.set_yscale('log')
@@ -858,7 +908,7 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
             ax.set_xscale('log')
 
             if plot_legend:
-                ax.legend(frameon=False, loc='lower left', fontsize=fontsize1)
+                ax.legend(loc='lower left', fontsize=fontsize1)
 
         if seperate:
             try:
@@ -867,9 +917,9 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
                 plt.savefig(myname)
                 plt.close(fig)
             except Exception as e:
-                print "an error occured on line number ", sys.exc_traceback.tb_lineno
-                print str(e)
-                print "script will continue!"
+                print("an errr occured on line number ", sys.exc_traceback.tb_lineno)
+                print(str(e))
+                print("script will continue!")
                 pass
             
     if not seperate:            
@@ -882,31 +932,31 @@ def makeplots(dct, name='edrlib', seperate=False, plot_periodic = False, plot_no
 
 
 def printstats(dct):
-    print
-    print "mu:      {:.4e}".format(dct['mu'])
-    print "sigma:   {:.4e}".format(dct['std'])
+    print()
+    print("mu:      {:.4e}".format(dct['mu']))
+    print("sigma:   {:.4e}".format(dct['std']))
 
-    print
-    print 'results for variance analysis'
-    print "variance method  , edr: {:.4e}".format(dct['nonperiodic_variancemethod_edr'])
-    print
-    print 
+    print()
+    print('results for variance analysis')
+    print("variance method  , edr: {:.4e}".format(dct['nonperiodic_variancemethod_edr']))
+    print()
+    print()
     
-    print 'results for non-periodic analysis'
-    print
-    print "power spectrum  , edr: {:.4e}".format(dct['nonperiodic_powerspectrum_edr'])
-    print "2nd order struct, edr: {:.4e}".format(dct['nonperiodic_2ndorder_edr'])
-    print "3rd order struct, edr: {:.4e}".format(dct['nonperiodic_3rdorder_edr'])
-    print 
-    print
+    print('results for non-periodic analysis')
+    print()
+    print("power spectrum  , edr: {:.4e}".format(dct['nonperiodic_powerspectrum_edr']))
+    print("2nd order struct, edr: {:.4e}".format(dct['nonperiodic_2ndorder_edr']))
+    print("3rd order struct, edr: {:.4e}".format(dct['nonperiodic_3rdorder_edr']))
+    print()
+    print()
     
-    print 'results for periodic analysis'
-    print
-    print "power spectrum  , edr: {:.4e}".format(dct['periodic_powerspectrum_edr'])
-    print "2nd order struct, edr: {:.4e}".format(dct['periodic_2ndorder_edr'])
-    print "3rd order struct, edr: {:.4e}".format(dct['periodic_3rdorder_edr'])
-    print 
-    print
+    print('results for periodic analysis')
+    print()
+    print("power spectrum  , edr: {:.4e}".format(dct['periodic_powerspectrum_edr']))
+    print("2nd order struct, edr: {:.4e}".format(dct['periodic_2ndorder_edr']))
+    print("3rd order struct, edr: {:.4e}".format(dct['periodic_3rdorder_edr']))
+    print()
+    print()
     
 
 def test():
@@ -915,10 +965,10 @@ def test():
     test3()
 
 def test1():
-    print 'TEST I'
-    print 'start from power spectrum'
-    print 'eddy dissipation rate is set to 1.0'
-    print
+    print('TEST I')
+    print('start from power spectrum')
+    print('eddy dissipation rate is set to 1.0')
+    print()
     
     dct = {}
     dct['n'] = 201
@@ -958,11 +1008,11 @@ def test1():
     return dct
     
 def test2():
-    print 'TEST II'
-    print 'start from second order structure function'
-    print 'eddy dissipation rate is set to 1.0'
-    print 'please note: bias can occur as d2 is periodic in simulation, and d2 is calculated non-periodic in retrieval'
-    print
+    print('TEST II')
+    print('start from second order structure function')
+    print('eddy dissipation rate is set to 1.0')
+    print('please note: bias can occur as d2 is periodic in simulation, and d2 is calculated non-periodic in retrieval')
+    print()
     
     dct = {}
     dct['n'] = 201
@@ -1009,11 +1059,11 @@ def test2():
     return dct
 
 def test3():
-    print 'TEST III'
-    print 'start from power spectrum'
-    print 'test the time domain'
-    print 'eddy dissipation rate is set to 1.0'
-    print
+    print('TEST III')
+    print('start from power spectrum')
+    print('test the time domain')
+    print('eddy dissipation rate is set to 1.0')
+    print()
     
     dct = {}
     dct['n'] = 201

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+
 import numpy as np
 import edrlib
 
 def worked_example_1():
-    print 'Worked example 1'
-    print
+    print("Worked example 1")
+    print("")
 
     #obtain raw data from ASCII file
     rawdata = np.array([line.split( ) for line in open("example1_radardata_ascii.txt")])
